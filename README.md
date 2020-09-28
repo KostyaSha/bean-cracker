@@ -9,3 +9,6 @@ Consists from:
 - sender
 - player
 
+# Possible bus communication implementations
+- https://github.com/specadmin/toyota-mpx
+- https://github.com/fiztech-code/BeanMPX
