@@ -9,7 +9,7 @@ Consists from:
 - sender
 - player
 
-## Input format
+## Input format & local demo
 One custom format used from custom adapter is supported atm. For local testing it's possible to send text data via tty.
 
 `socat -d -d pty,raw,echo=0,link=/tmp/ttyBean pty,raw,echo=0,link=/tmp/ttyBeanIn`
