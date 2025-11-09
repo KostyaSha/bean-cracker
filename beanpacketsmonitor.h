@@ -19,8 +19,8 @@ public:
     ~BeanPacketsMonitor() override;
 
     void initializeBeanTable();
-    BeanPacket* getSelectedPacket();
-    void receiveSerialLine(BeanPacket *packet);
+    QSharedPointer<BeanPacket> getSelectedPacket();
+    void receiveSerialLine(QSharedPointer<BeanPacket> packet);
 private:
     Ui::BeanPacketsMonitor *ui;
     BeanPacketsMonitorModel *monitorModel;
@@ -28,6 +28,8 @@ private:
     void rowChanged(int row);
 
 private slots:
+    void onUpdateTimer();
+
     void on_btnClearTable_clicked();
     void on_tableMonitor_clicked(const QModelIndex &index);
     void rowChanged(const QModelIndex &current, const QModelIndex &previous);

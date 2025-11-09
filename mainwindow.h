@@ -1,8 +1,7 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
-#include "beanpacketsloggerwindow.h"
-#include "beanpacketsplayerwindow.h"
+#include "serialworker.h"
 
 #include <QMainWindow>
 #include <QtSerialPort/QSerialPort>
@@ -19,15 +18,24 @@ public:
     explicit MainWindow(QWidget *parent = nullptr);
     ~MainWindow() override;
 
-    static QSerialPort* getSerialPort();
-
     void setConnected(bool value);
+
+
+signals:
+    void configureSerial(const SerialSettings &settings);
+    void startSerial();
+    void stopSerial();
+
+public slots:
+    void onSerialError(const QString &error);
+    void onSerialStart(const QString &error);
 
 private slots:
     void fillDevices();
     void on_btnRefresh_clicked();
     void on_btnConnect_clicked();
-    void serialReceived();
+
+    void processBeanPacket(QSharedPointer<BeanPacket> packet);
 
     void on_actionOpen_Logger_triggered();
 
@@ -35,9 +43,15 @@ private slots:
 
     void on_actioncopyToTransmit_triggered();
 
+    void onUpdateTimer();
 private:
+    void setupSerialWorker();
+
     Ui::MainWindow *ui;
 
+    SerialWorker *worker = nullptr;
+    QThread *workerThread = nullptr;
+    int counter = 0;
 
 };
 

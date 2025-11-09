@@ -20,7 +20,7 @@ protected:
   void mousePressEvent(QMouseEvent *event) override;
 
 private:
-  bool isChecked{};
+  bool isChecked = false;
   void redrawCheckBox();
 };
 

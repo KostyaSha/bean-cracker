@@ -9,6 +9,8 @@ int main(int argc, char *argv[])
     MainWindow w;
     w.show();
 
+    qRegisterMetaType<BeanPacket*>("BeanPacket*");
+
     return a.exec();
 }
 

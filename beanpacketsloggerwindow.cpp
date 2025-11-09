@@ -1,7 +1,6 @@
 #include "beanpacketsloggerwindow.h"
 #include "ui_beanpacketsloggerwindow.h"
 #include "beanpacketsloggermodel.h"
-#include "beanpacketsloggerheaderview.h"
 
 #include <QFileDialog>
 #include <QDebug>
@@ -65,7 +64,7 @@ BeanPacketsLoggerWindow::~BeanPacketsLoggerWindow()
     delete logModel;
 }
 
-void BeanPacketsLoggerWindow::appendPacket(BeanPacket *packet)
+void BeanPacketsLoggerWindow::appendPacket(QSharedPointer<BeanPacket> packet)
 {
     logModel->appendPacket(packet);
     if (ui->cbAutoScroll->isChecked()) {

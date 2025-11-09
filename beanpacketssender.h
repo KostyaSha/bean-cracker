@@ -27,7 +27,7 @@ public:
     void setConnected(bool value);
 
     void packetReceived();
-    void appendPacket(BeanPacket *pPacket);
+    void appendPacket(QSharedPointer<BeanPacket> pPacket);
     void dataChanged();
 
 private slots:
@@ -43,6 +43,8 @@ private slots:
     void rowChanged(const QModelIndex &current, const QModelIndex &previous);
 
     void on_btnShot_clicked();
+
+    void on_btnStop_clicked();
 
 private:
     Ui::BeanPacketsSender *ui;

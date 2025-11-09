@@ -1,5 +1,4 @@
 #include "beanpacketsloggermodel.h"
-#include "beanpacketsloggerheaderview.h"
 
 #include <QApplication>
 #include <QFile>
@@ -23,7 +22,7 @@
 BeanPacketsLoggerModel::BeanPacketsLoggerModel(QObject *parent)
     : QAbstractTableModel(parent)
 {
-    packets = new QList<BeanPacket*>;
+    packets = new QList<QSharedPointer<BeanPacket>>;
 
     //QTableView *tableLog = parent->findChild<QTableView *>("tableLog");
     //QTableView* tableLog = dynamic_cast<QTableView*>(parent);
@@ -31,11 +30,16 @@ BeanPacketsLoggerModel::BeanPacketsLoggerModel(QObject *parent)
 
 BeanPacketsLoggerModel::~BeanPacketsLoggerModel() = default;
 
-void BeanPacketsLoggerModel::appendPacket(BeanPacket *packet)
+void BeanPacketsLoggerModel::appendPacket(QSharedPointer<BeanPacket> packet)
 {
-    qDebug() << "Adding packet to beanlogger";
+    // qDebug() << "Adding packet to beanlogger";
+    // emit layoutAboutToBeChanged();
+    // packets->append(packet);
+    // emit layoutChanged();
+    int newRow = packets->size();
+    beginInsertRows(QModelIndex(), newRow, newRow);
     packets->append(packet);
-    layoutChanged();
+    endInsertRows();
 }
 
 QVariant BeanPacketsLoggerModel::headerData(int section, Qt::Orientation orientation, int role) const
@@ -68,11 +72,13 @@ QVariant BeanPacketsLoggerModel::headerData(int section, Qt::Orientation orienta
 
 int BeanPacketsLoggerModel::rowCount(const QModelIndex &parent) const
 {
+    Q_UNUSED(parent);
     return packets->size();
 }
 
 int BeanPacketsLoggerModel::columnCount(const QModelIndex &parent) const
 {
+    Q_UNUSED(parent);
     return PRIO + 1;
 }
 
@@ -119,7 +125,7 @@ QVariant BeanPacketsLoggerModel::data(const QModelIndex &index, int role) const
     } else if (role == Qt::TextAlignmentRole) {
         switch (index.column()) {
             case DATA:
-                return Qt::AlignLeft + Qt::AlignVCenter;
+                return QVariant::fromValue(Qt::AlignLeft | Qt::AlignVCenter);
             case PRIO:
             case DLC:
             case CRC:
@@ -127,7 +133,7 @@ QVariant BeanPacketsLoggerModel::data(const QModelIndex &index, int role) const
             case MSGID:
             case DSTID:
             default:
-                return Qt::AlignRight + Qt::AlignVCenter;
+                return QVariant::fromValue(Qt::AlignRight | Qt::AlignVCenter);
         }
     }
     return QVariant();
@@ -138,8 +144,9 @@ QVariant BeanPacketsLoggerModel::data(const QModelIndex &index, int role) const
 void BeanPacketsLoggerModel::clearPackets()
 {
 //    qDeleteAll(packets);
+    emit layoutAboutToBeChanged();
     packets->clear();
-    layoutChanged();
+    emit layoutChanged();
 }
 
 
@@ -157,7 +164,10 @@ void BeanPacketsLoggerModel::saveAsCSV(const QString& fileName)
 
         ts << " ,,Time,Dst,Msg,DLC,Data,CRC,Prio,Debug\n";
 
-        for (auto packet : *packets) {
+        // const QList<QSharedPointer<BeanPacket>> &constList = *packets;
+        // for (const QSharedPointer<BeanPacket> &packet : constList) {
+
+        for (const auto &packet : std::as_const(*packets)) {
             strList << "\"  \""; // 0
             strList << "\"  \""; // 1
             strList << "\"" << QString::number(packet->timeEpoch) << "\"";

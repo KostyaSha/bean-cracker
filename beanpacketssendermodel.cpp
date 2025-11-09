@@ -16,14 +16,15 @@
 BeanPacketsSenderModel::BeanPacketsSenderModel(QObject *parent)
     : QAbstractTableModel(parent)
 {
-    packets = new QList<BeanPacket*>;
+    packets = new QList<QSharedPointer<BeanPacket>>;
 }
 
-int BeanPacketsSenderModel::appendPacket(BeanPacket *packet)
+int BeanPacketsSenderModel::appendPacket(QSharedPointer<BeanPacket> packet)
 {
     packet->ro = false;
+    emit layoutAboutToBeChanged();
     packets->append(packet);
-    layoutChanged();
+    emit layoutChanged();
     return packets->size();
 }
 
@@ -56,11 +57,13 @@ QVariant BeanPacketsSenderModel::headerData(int section, Qt::Orientation orienta
 
 int BeanPacketsSenderModel::rowCount(const QModelIndex &parent) const
 {
+    Q_UNUSED(parent);
     return packets->size();
 }
 
 int BeanPacketsSenderModel::columnCount(const QModelIndex &parent) const
 {
+    Q_UNUSED(parent);
     return COUNTER +1;
 }
 
@@ -71,7 +74,7 @@ QVariant BeanPacketsSenderModel::data(const QModelIndex &index, int role) const
 
     if (role == Qt::DisplayRole) {
         if (index.row() <= packets->size()) {
-            const BeanPacket *packet = packets->at(index.row());
+            auto packet = packets->at(index.row());
             switch (index.column()) {
                 case DSTID:
                     return QVariant(packet->getDstIdStr());
@@ -98,7 +101,7 @@ QVariant BeanPacketsSenderModel::data(const QModelIndex &index, int role) const
     } else if (role == Qt::TextAlignmentRole) {
         switch (index.column()) {
             case DATA:
-                return Qt::AlignLeft + Qt::AlignVCenter;
+                return QVariant::fromValue(Qt::AlignLeft | Qt::AlignVCenter);
             case PRIO:
             case DLC:
             case CRC:
@@ -106,24 +109,25 @@ QVariant BeanPacketsSenderModel::data(const QModelIndex &index, int role) const
             case MSGID:
             case DSTID:
             default:
-                return Qt::AlignRight + Qt::AlignVCenter;
+                return QVariant::fromValue(Qt::AlignRight | Qt::AlignVCenter);
         }
     }
     return QVariant();
 }
 
-BeanPacket* BeanPacketsSenderModel::packetAt(int row) {
+QSharedPointer<BeanPacket> BeanPacketsSenderModel::getPacketAt(int row) {
     if (row >= 0 && row < packets->size()) {
         return packets->at(row);
     }
-    return nullptr;
+    QSharedPointer<BeanPacket> ptr(nullptr);
+    return ptr;
 }
 
 void BeanPacketsSenderModel::removePacketAt(int row) {
     if (row > 0 && row <= packets->size()) {
-        auto tmpPacket = packetAt(row);
+        auto tmpPacket = getPacketAt(row);
         packets->removeAt(row);
-        delete(tmpPacket);
-        layoutChanged();
+        // delete(tmpPacket);
+        emit layoutChanged();
     }
 }

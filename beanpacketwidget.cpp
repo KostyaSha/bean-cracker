@@ -26,7 +26,7 @@ BeanPacketWidget::~BeanPacketWidget() {
     delete ui;
 }
 
-void BeanPacketWidget::setPacket(BeanPacket *packet, QAbstractTableModel *packetModel) {
+void BeanPacketWidget::setPacket(QSharedPointer<BeanPacket> packet, QAbstractTableModel *packetModel) {
     beanPacket = packet;
     model = packetModel;
     loadPacket();
@@ -129,7 +129,7 @@ void BeanPacketWidget::updateByte(uint8_t byte_num) {
 
 void BeanPacketWidget::updatePacketModel() const {
     if (model) {
-        model->layoutChanged();
+        emit model->layoutChanged();
     }
 }
 
@@ -263,29 +263,29 @@ void BeanPacketWidget::updateBytes() {
 }
 
 void BeanPacketWidget::deviceSend() {
-    QString str;
-    if (isSending) {
-        return;
-    }
-    isSending = true;
-    str = QString("%1,%2,%3,%4,")
-            .arg(0) //.arg(ui->cbRetransmission->isChecked() ? 1 : 0)
-            .arg(ui->cbPriority->currentIndex() + 1)
-            .arg(ui->cbDestId->currentIndex())
-            .arg(ui->cbMsgId->currentIndex());
-    auto bytes_count = (uint8_t) ui->sbBytesCount->value();
+    // QString str;
+    // if (isSending) {
+    //     return;
+    // }
+    // isSending = true;
+    // str = QString("%1,%2,%3,%4,")
+    //         .arg(0) //.arg(ui->cbRetransmission->isChecked() ? 1 : 0)
+    //         .arg(ui->cbPriority->currentIndex() + 1)
+    //         .arg(ui->cbDestId->currentIndex())
+    //         .arg(ui->cbMsgId->currentIndex());
+    // auto bytes_count = (uint8_t) ui->sbBytesCount->value();
 
-    str.append(QString("%1,").arg(bytes_count));
-    for (uint8_t i = 0; i < bytes_count; i++) {
-        str.append(QString("%1,").arg(bytes[i]));
-    }
-    str.append(char(10));
-    qDebug() << str;
+    // str.append(QString("%1,").arg(bytes_count));
+    // for (uint8_t i = 0; i < bytes_count; i++) {
+    //     str.append(QString("%1,").arg(bytes[i]));
+    // }
+    // str.append(char(10));
+    // qDebug() << str;
 
-    QSerialPort *serial = MainWindow::getSerialPort();
-    serial->write(str.toStdString().c_str(), str.size());
-    serial->waitForBytesWritten(-1);
-    isSending = false;
+    // QSerialPort *serial = MainWindow::getSerialPort();
+    // serial->write(str.toStdString().c_str(), str.size());
+    // serial->waitForBytesWritten(-1);
+    // isSending = false;
 }
 
 

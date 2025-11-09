@@ -2,7 +2,6 @@
 
 #include <QHeaderView>
 
-bool isChecked = false;
 
 BeanPacketsLoggerHeaderView::BeanPacketsLoggerHeaderView(Qt::Orientation orientation, QWidget * parent)
     : QHeaderView(orientation, parent)

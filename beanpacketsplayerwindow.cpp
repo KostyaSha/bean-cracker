@@ -1,6 +1,5 @@
 #include "beanpacketsplayermodel.h"
 #include "beanpacketsplayerwindow.h"
-#include "mainwindow.h"
 #include "ui_beanpacketsplayerwindow.h"
 
 #include <QCheckBox>
@@ -77,7 +76,10 @@ bool BeanPacketsPlayerWindow::getConnected()
 void BeanPacketsPlayerWindow::setConnected(bool value)
 {
     connected = value;
-    ui->toolBar->actions()[1]->setEnabled(connected);
+    auto actions = ui->toolBar->actions();
+    if (actions.size() > 1) {
+        actions[1]->setEnabled(connected);
+    }
 }
 
 void BeanPacketsPlayerWindow::on_actionLoadFile_triggered()
@@ -85,7 +87,7 @@ void BeanPacketsPlayerWindow::on_actionLoadFile_triggered()
     QString fileName = QFileDialog::getOpenFileName(this, tr("Open File"),
                                QDir::currentPath(),
                                tr("Dumps (*.txt *.csv)"));
-    qDebug() <<"File fro open: " << fileName;
+    qDebug() << "File fro open: " << fileName;
     if (!fileName.isEmpty()) {
         playModel->loadFromCSV(fileName);
     }
@@ -113,46 +115,47 @@ void BeanPacketsPlayerWindow::on_cbDelay_stateChanged(int arg1)
    }
 }
 
+// TODO fix
 void BeanPacketsPlayerWindow::on_actionPlayPause_triggered()
 {
-    if (!connected) {
-        qWarning() << "Attempt to send packets while disconnected.";
-        ui->statusbar->showMessage("Serial port is not connected!", 10000);
-        return;
-    }
+    // if (!connected) {
+    //     qWarning() << "Attempt to send packets while disconnected.";
+    //     ui->statusbar->showMessage("Serial port is not connected!", 10000);
+    //     return;
+    // }
 
-    QSerialPort *serial = getSerialPort();
+    // QSerialPort *serial = getSerialPort();
 
-    QListIterator<BeanPacket*> i(playModel->getPackets());
-    bool play = true;
-    while (play) {
-        int row = 1;
-        while(i.hasNext()) {
-            auto packet = i.next();
+    // QListIterator<BeanPacket*> i(playModel->getPackets());
+    // bool play = true;
+    // while (play) {
+    //     int row = 1;
+    //     while(i.hasNext()) {
+    //         auto packet = i.next();
 
-            packet->sendToSerialBin(serial);
-            ui->tableView->selectRow(row);
-            ui->tableView->scrollTo(playModel->index(row, 0));
-            row++;
-            //TODO fixup
-            QThread::msleep(ui->lineEdit->text().toInt());
-    //        timer->setInterval(ui->lineEdit->text().toInt());
-    //        timer->start();
-        }
-        play = ui->cbRepeat->isChecked();
-    }
+    //         packet->sendToSerialBin(serial);
+    //         ui->tableView->selectRow(row);
+    //         ui->tableView->scrollTo(playModel->index(row, 0));
+    //         row++;
+    //         //TODO fixup
+    //         QThread::msleep(ui->lineEdit->text().toInt());
+    // //        timer->setInterval(ui->lineEdit->text().toInt());
+    // //        timer->start();
+    //     }
+    //     play = ui->cbRepeat->isChecked();
+    // }
 }
 
 
-QSerialPort *BeanPacketsPlayerWindow::getSerialPort() {
-    MainWindow window;
-    foreach(QWidget *widget, qApp->topLevelWidgets()) {
-        if (auto *mainWindow = dynamic_cast<MainWindow*>(widget)) {
-            return  mainWindow->getSerialPort();
-            break;
-        }
-    }
+// QSerialPort *BeanPacketsPlayerWindow::getSerialPort() {
+//     MainWindow window;
+//     foreach(QWidget *widget, qApp->topLevelWidgets()) {
+//         if (auto *mainWindow = dynamic_cast<MainWindow*>(widget)) {
+//             return  mainWindow->getSerialPort();
+//             break;
+//         }
+//     }
 
-    return nullptr;
-}
+//     return nullptr;
+// }
 

@@ -16,7 +16,7 @@ BeanPacketsSender::BeanPacketsSender(QWidget *parent) :
     senderModel = new BeanPacketsSenderModel(table);
     table->setModel(senderModel);
 
-    auto firstPacket = new BeanPacket();
+    auto firstPacket = QSharedPointer<BeanPacket>(new BeanPacket(), &QObject::deleteLater);
     firstPacket->ro = false;
     senderModel->appendPacket(firstPacket);
     ui->packetWidget->reloadPacket();
@@ -88,7 +88,7 @@ void BeanPacketsSender::setConnected(bool value) {
 }
 
 void BeanPacketsSender::on_btnAdd_clicked() {
-    auto *newPacket = new BeanPacket();
+    auto newPacket = QSharedPointer<BeanPacket>(new BeanPacket(), &QObject::deleteLater);
     senderModel->appendPacket(newPacket);
 }
 
@@ -101,13 +101,9 @@ void BeanPacketsSender::dataChanged() {
 }
 
 void BeanPacketsSender::rowChanged(const int row) const {
-    ui->packetWidget->setPacket(senderModel->packetAt(row), senderModel);
+    ui->packetWidget->setPacket(senderModel->getPacketAt(row), senderModel);
 }
 
-void BeanPacketsSender::on_btnRun_clicked() {
-    // get reference to selected packet from send packets table
-
-}
 
 void BeanPacketsSender::on_btnDel_clicked() {
     int row = ui->tablePacketsSend->currentIndex().row();
@@ -128,22 +124,35 @@ void BeanPacketsSender::packetReceived() {
 
 
 
-void BeanPacketsSender::appendPacket(BeanPacket *pPacket) {
+void BeanPacketsSender::appendPacket(QSharedPointer<BeanPacket> pPacket) {
     pPacket->ro = false;
     senderModel->appendPacket(pPacket);
     ui->packetWidget->reloadPacket();
 }
 
 void BeanPacketsSender::rowChanged(const QModelIndex &current, const QModelIndex &previous) {
+    Q_UNUSED(previous);
     rowChanged(current.row());
 }
 
 void BeanPacketsSender::on_btnShot_clicked()
 {
     int row = ui->tablePacketsSend->currentIndex().row();
-    auto packet = senderModel->packetAt(row);
+    auto packet = senderModel->getPacketAt(row);
     if (packet) {
         qDebug() << "Asking packet to send once...";
         packet->sendOnce();
     }
 }
+
+
+void BeanPacketsSender::on_btnRun_clicked() {
+    // get reference to selected packet from send packets table
+
+}
+
+void BeanPacketsSender::on_btnStop_clicked()
+{
+
+}
+

@@ -27,6 +27,7 @@ DEFINES += QT_DEPRECATED_WARNINGS
 CONFIG += c++11
 
 SOURCES += \
+        bean.cpp \
         beanpacketsloggermodel.cpp \
         beanpacket.cpp \
         beanpacketsloggerheaderview.cpp \
@@ -39,9 +40,12 @@ SOURCES += \
         beanpacketssendermodel.cpp \
         beanpacketwidget.cpp \
         main.cpp \
-        mainwindow.cpp
+        mainwindow.cpp \
+        cobs/cobs.c \
+        serialworker.cpp
 
 HEADERS += \
+        bean.h \
         beanpacketsloggermodel.h \
         beanpacket.h \
         beanpacketsloggerheaderview.h \
@@ -53,7 +57,9 @@ HEADERS += \
         beanpacketssender.h \
         beanpacketssendermodel.h \
         beanpacketwidget.h \
-        mainwindow.h
+        mainwindow.h \
+        cobs/cobs.h \
+        serialworker.h
 
 FORMS += \
         beanpacketsloggerwindow.ui \
@@ -63,6 +69,8 @@ FORMS += \
         beanpacketwidget.ui \
         mainwindow.ui
 
+
+INCLUDEPATH += cobs
 
 # Default rules for deployment.
 qnx: target.path = /tmp/$${TARGET}/bin

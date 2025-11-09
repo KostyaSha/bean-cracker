@@ -3,6 +3,7 @@
 #include "ui_beanpacketsmonitor.h"
 #include "beanpacketwidget.h"
 #include <QDebug>
+#include <QFontDatabase>
 
 BeanPacketsMonitor::BeanPacketsMonitor(QWidget *parent) :
         QFrame(parent),
@@ -12,22 +13,31 @@ BeanPacketsMonitor::BeanPacketsMonitor(QWidget *parent) :
     QTableView *table = ui->tableMonitor;
     table->setModel(monitorModel);
 
+    QFont font = QFontDatabase::systemFont(QFontDatabase::FixedFont);
+    table->setFont(font);
+
     auto *selectionModel = table->selectionModel();
     if (selectionModel) {
         qDebug() << "Connecting row changed slot";
-        QObject::connect(
-                selectionModel,
-                SIGNAL(currentRowChanged(const QModelIndex &, const QModelIndex &)),
-                this,
-                SLOT(rowChanged(const QModelIndex &, const QModelIndex &))
-        );
+        QObject::connect(selectionModel, SIGNAL(currentRowChanged()), this, SLOT(rowChanged()));
     }
     initializeBeanTable();
+
+    auto* timer = new QTimer(this);
+    connect(timer, &QTimer::timeout, this, &BeanPacketsMonitor::onUpdateTimer);
+    timer->start(100);
 }
 
 BeanPacketsMonitor::~BeanPacketsMonitor() {
     delete ui;
 }
+
+void BeanPacketsMonitor::onUpdateTimer()
+{
+    // monitorModel.da
+    // update();
+}
+
 
 void BeanPacketsMonitor::initializeBeanTable() {
     QTableView *table = ui->tableMonitor;
@@ -69,7 +79,7 @@ void BeanPacketsMonitor::on_btnClearTable_clicked() {
     monitorModel->clearPackets();
 }
 
-void BeanPacketsMonitor::receiveSerialLine(BeanPacket *packet) {
+void BeanPacketsMonitor::receiveSerialLine(QSharedPointer<BeanPacket> packet) {
     monitorModel->appendPacket(packet, ui->cbGroupMsgs->isChecked());
     if (ui->cbAutoScroll->isChecked()) {
         ui->tableMonitor->scrollToBottom();
@@ -89,10 +99,11 @@ void BeanPacketsMonitor::rowChanged(int row) {
 }
 
 void BeanPacketsMonitor::rowChanged(const QModelIndex &current, const QModelIndex &previous) {
+    Q_UNUSED(previous);
     rowChanged(current.row());
 }
 
-BeanPacket *BeanPacketsMonitor::getSelectedPacket() {
+QSharedPointer<BeanPacket> BeanPacketsMonitor::getSelectedPacket() {
     auto selectedRows = ui->tableMonitor->selectionModel()->selectedRows();
     if (!selectedRows.isEmpty()) {
         int row = selectedRows.first().row();

@@ -18,7 +18,7 @@ public:
     explicit BeanPacketsLoggerWindow(QWidget *parent = nullptr);
     ~BeanPacketsLoggerWindow() override;
 
-    void appendPacket(BeanPacket *packet);
+    void appendPacket(QSharedPointer<BeanPacket> packet);
 
 //    void saveAsCSV(const QString filename);
 

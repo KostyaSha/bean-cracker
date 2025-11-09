@@ -54,11 +54,13 @@ QVariant BeanPacketsPlayerModel::headerData(int section, Qt::Orientation orienta
 
 int BeanPacketsPlayerModel::rowCount(const QModelIndex &parent) const
 {
+    Q_UNUSED(parent);
     return packets->size();
 }
 
 int BeanPacketsPlayerModel::columnCount(const QModelIndex &parent) const
 {
+    Q_UNUSED(parent);
     return DEBUG;
 }
 
@@ -107,7 +109,7 @@ QVariant BeanPacketsPlayerModel::data(const QModelIndex &index, int role) const
     } else if (role == Qt::TextAlignmentRole) {
         switch (index.column()) {
             case DATA:
-                return Qt::AlignLeft + Qt::AlignVCenter;
+                return QVariant::fromValue(Qt::AlignLeft | Qt::AlignVCenter);
             case PRIO:
             case DLC:
             case CRC:
@@ -115,7 +117,7 @@ QVariant BeanPacketsPlayerModel::data(const QModelIndex &index, int role) const
             case MSGID:
             case DSTID:
             default:
-                return Qt::AlignRight + Qt::AlignVCenter;
+                return QVariant::fromValue(Qt::AlignRight | Qt::AlignVCenter);
         }
     }
 
@@ -124,6 +126,7 @@ QVariant BeanPacketsPlayerModel::data(const QModelIndex &index, int role) const
 
 void BeanPacketsPlayerModel::loadFromCSV(const QString &fileName)
 {
+    emit layoutAboutToBeChanged();
     packets->clear();
     QFile file(fileName);
     if ( file.open( QIODevice::ReadOnly | QIODevice::Text ) ) {
@@ -149,7 +152,7 @@ void BeanPacketsPlayerModel::loadFromCSV(const QString &fileName)
     }
 
 
-     layoutChanged();
+    emit layoutChanged();
 }
 
 QList<BeanPacket*> BeanPacketsPlayerModel::getPackets() const

@@ -25,10 +25,10 @@ public:
     void clearPackets();
     void saveAsCSV(const QString& fileName);
 
-    void appendPacket(BeanPacket *packet);
+    void appendPacket(QSharedPointer<BeanPacket> packet);
 
 private:
-    QList<BeanPacket*> *packets;
+    QList<QSharedPointer<BeanPacket>> *packets;
 };
 
 #endif // BEANPACKETSLOGGERMODEL_H

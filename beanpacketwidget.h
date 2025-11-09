@@ -1,6 +1,7 @@
 #ifndef BEANPACKETWIDGET_H
 #define BEANPACKETWIDGET_H
 
+#include <QAbstractTableModel>
 #include <QWidget>
 #include "mainwindow.h"
 
@@ -19,7 +20,7 @@ public:
 
     void reloadPacket();
 
-    void setPacket(BeanPacket *packet, QAbstractTableModel *model);
+    void setPacket(QSharedPointer<BeanPacket> packet, QAbstractTableModel *model);
 
     void fillPriority();
 
@@ -39,7 +40,7 @@ public:
 
 private:
     Ui::BeanPacketWidget *ui;
-    BeanPacket *beanPacket; // points to packet that this widget is displaying/modifying
+    QSharedPointer<BeanPacket> beanPacket; // points to packet that this widget is displaying/modifying
     QAbstractTableModel *model; // model that contains packet. Needs notification.
     void updateBits(uint8_t byte_num);
 

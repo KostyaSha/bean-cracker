@@ -15,7 +15,7 @@
 
 BeanPacketsMonitorModel::BeanPacketsMonitorModel(QObject *parent)
         : QAbstractTableModel(parent) {
-    packets = new QList<BeanPacket *>;
+    packets = new QList<QSharedPointer<BeanPacket>>;
 }
 
 
@@ -50,10 +50,12 @@ QVariant BeanPacketsMonitorModel::headerData(int section, Qt::Orientation orient
 }
 
 int BeanPacketsMonitorModel::rowCount(const QModelIndex &parent) const {
+    Q_UNUSED(parent);
     return packets->size();
 }
 
 int BeanPacketsMonitorModel::columnCount(const QModelIndex &parent) const {
+    Q_UNUSED(parent);
     return COMMENT + 1;
 }
 
@@ -63,7 +65,7 @@ QVariant BeanPacketsMonitorModel::data(const QModelIndex &index, int role) const
 
     if (role == Qt::DisplayRole) {
         if (index.row() <= packets->size()) {
-            const BeanPacket *packet = packets->at(index.row());
+            auto packet = packets->at(index.row());
             switch (index.column()) {
                 case DSTID:
                     return QVariant(packet->getDstIdStr());
@@ -90,7 +92,7 @@ QVariant BeanPacketsMonitorModel::data(const QModelIndex &index, int role) const
     } else if (role == Qt::TextAlignmentRole) {
         switch (index.column()) {
             case DATA:
-                return Qt::AlignLeft + Qt::AlignVCenter;
+                return QVariant::fromValue(Qt::AlignLeft | Qt::AlignVCenter);
             case PRIO:
             case DLC:
             case CRC:
@@ -98,29 +100,30 @@ QVariant BeanPacketsMonitorModel::data(const QModelIndex &index, int role) const
             case MSGID:
             case DSTID:
             default:
-                return Qt::AlignRight + Qt::AlignVCenter;
+                return QVariant::fromValue(Qt::AlignRight | Qt::AlignVCenter);
         }
     }
     return QVariant();
 }
 
 void BeanPacketsMonitorModel::clearPackets() {
-    qDeleteAll(*packets);
+    // qDeleteAll(*packets);
 
     packets->clear();
-    layoutChanged();
+    emit layoutChanged();
 }
 
-void BeanPacketsMonitorModel::appendPacket(BeanPacket *packet, bool groupMsg) {
+void BeanPacketsMonitorModel::appendPacket(QSharedPointer<BeanPacket> packet, bool groupMsg) {
     // either add, either change existing
-    qDebug() << "Monitor: packets size before:" << packets->size();
+    // qDebug() << "Monitor: packets size before:" << packets->size();
 
-    BeanPacket *targetPacket = nullptr;
+
+    QSharedPointer<BeanPacket> targetPacket = nullptr;
 
     // search for existing dst
     for (int i = 0; i < packets->size(); i++) {
         auto curPacket = packets->at(i);
-        qDebug() << packet->dstId << "? local item text:" << curPacket;
+        // qDebug() << packet->dstId << "? local item text:" << curPacket;
         if (curPacket->dstId == packet->dstId) { // dst matches
             bool matched = true;
             if (groupMsg) {
@@ -129,36 +132,50 @@ void BeanPacketsMonitorModel::appendPacket(BeanPacket *packet, bool groupMsg) {
                 }
             }
             if (matched) {
-                qDebug() << "row " << i;
+                // qDebug() << "row " << i;
                 targetPacket = curPacket;
+
+                if (targetPacket) { // update existing
+                    targetPacket->msgId = packet->msgId;
+                    targetPacket->crc = packet->crc;
+                    targetPacket->prio = packet->prio;
+                    targetPacket->dlc = packet->dlc;
+                    targetPacket->parsedDlc = packet->parsedDlc;
+                    memcpy(&(targetPacket->data), &(packet->data), 11);
+
+                    if (packet->timeEpoch >= targetPacket->timeEpoch) {
+                        targetPacket->repeat = packet->timeEpoch - targetPacket->timeEpoch;
+                    }
+                    targetPacket->timeEpoch = packet->timeEpoch;
+                    targetPacket->counter++;
+
+                    int lastCol = columnCount() - 1;
+                    QModelIndex topLeft     = index(i, 0);
+                    QModelIndex bottomRight = index(i, lastCol);
+                    emit dataChanged(topLeft, bottomRight);
+
+                    // emit layoutChanged();
+                    return;
+                }
                 break;
             }
         }
     }
 
-    if (targetPacket) { // update existing
-        targetPacket->msgId = packet->msgId;
-        targetPacket->crc = packet->crc;
-        targetPacket->prio = packet->prio;
-        targetPacket->dlc = packet->dlc;
-        targetPacket->parsedDlc = packet->parsedDlc;
-        memcpy(&(targetPacket->data), &(packet->data), 11);
 
-        if (packet->timeEpoch >= targetPacket->timeEpoch) {
-            targetPacket->repeat = packet->timeEpoch - targetPacket->timeEpoch;
-        }
-        targetPacket->timeEpoch = packet->timeEpoch;
-        targetPacket->counter++;
-    } else {
-        auto copyPacket = new BeanPacket(packet);
+        QSharedPointer<BeanPacket> copyPacket = QSharedPointer<BeanPacket>::create(packet);
+        // auto copyPacket = new BeanPacket(packet);
+        emit layoutAboutToBeChanged();
         packets->append(copyPacket);
-    }
-    layoutChanged();
+        emit layoutChanged();
+
+
 }
 
-BeanPacket *BeanPacketsMonitorModel::getPacketAt(int i) {
+QSharedPointer<BeanPacket> BeanPacketsMonitorModel::getPacketAt(int i) {
     if (packets) {
         return packets->at(i);
     }
-    return nullptr;
+    QSharedPointer<BeanPacket> ptr(nullptr);
+    return ptr;
 }

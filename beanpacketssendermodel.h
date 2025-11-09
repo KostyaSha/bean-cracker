@@ -11,9 +11,10 @@ class BeanPacketsSenderModel : public QAbstractTableModel
 
 public:
     explicit BeanPacketsSenderModel(QObject *parent = nullptr);
+
     void removePacketAt(int i);
-    int appendPacket(BeanPacket *packet);
-    BeanPacket* packetAt(int row);
+    int appendPacket(QSharedPointer<BeanPacket> packet);
+    QSharedPointer<BeanPacket> getPacketAt(int row);
 
     // Header:
     QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const override;
@@ -24,7 +25,7 @@ public:
     QVariant data(const QModelIndex &index, int role = Qt::DisplayRole) const override;
 
 private:
-    QList<BeanPacket*> *packets;
+    QList<QSharedPointer<BeanPacket>> *packets;
 };
 
 #endif // BEANPACKETSSENDERMODEL_H
